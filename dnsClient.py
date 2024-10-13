@@ -35,7 +35,8 @@ def main():
 
     # Init DNS client socket
     socket = client_socket(args.t, args.r, args.p, query_flag, args.server, args.domain)
-    socket.query()
+    response = socket.query()
+    print(response)
 
 if __name__ == "__main__":
     # Query: python3 dnsClient.py -t 10 -r 3 -p 34 -mx @8.8.8.8 www.mcgill.ca

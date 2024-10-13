@@ -58,8 +58,30 @@ class client_socket:
 
 
     def query(self):
-        query = self.build_dns_query()
-        print(query)
+        # Init DNS query packet
+        packet = self.build_dns_query()
 
+        # Init UDP socket
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         client_socket.settimeout(self.timeout)
+
+        # Print to stdout
+        print(f"DnsClient sending request for {self.domain_name}")
+        print(f"Server: {self.server_ip}")
+        print(f"Request type: {self.query_flag}")
+
+        num_attempts = 0
+
+        while num_attempts < self.max_retries:
+            try:
+                client_socket.sendto(packet, (self.server_ip, self.port_num))
+                response, _ = client_socket.recvfrom(512)
+                return response
+            except socket.timeout:
+                print(f"Timeout on attempt {num_attempts + 1}. Retrying...")
+                num_attempts += 1
+
+        # If still no response after max number of retries
+        return None
+
+        # python3 dnsClient.py @8.8.8.8 www.mcgill.ca
