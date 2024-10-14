@@ -34,7 +34,6 @@ def parse_response(response):
 
     if ANCOUNT > 0:
         print(f"*** Answer Section ({ANCOUNT} records) ***")
-
         # ANSWER SECTION
         offset = 12
         # Skip QNAME section
@@ -43,6 +42,7 @@ def parse_response(response):
         # Skip 0x00 label, QTYPE, and QCLASS
         offset += 5
             
+        # Extracting all answer section records
         for i in range(ANCOUNT):
             length = response[offset]
             # First 2 bits are '11' indicate that it is a pointer
@@ -70,17 +70,20 @@ def parse_response(response):
 
             if TYPE == 0x0001:
                 # Build RDATA which is IP address in this case
+                RDATA = response[offset:offset + RDLENGTH]
                 labels = []
-                pointer = offset
+                
+                # If we do not have 4 octets, we do not have a valid IP address
+                if len(RDATA) != 4:
+                    print("ERROR\tInvalid IP address field in answer record")
+                    continue
 
                 for i in range(4):
-                    label = str(int.from_bytes(response[pointer:pointer + 2], 'big'))
-                    pointer += 2
-                    labels.append(label)
+                    labels.append(str(RDATA[i]))
 
                 RDATA = ".".join(labels)
-
                 print(f"IP\t{RDATA}\t{TTL}\t{AUTH}")
+                
             elif TYPE == 0x0002:
                 print("NS")
             elif TYPE == 0x005:
@@ -129,7 +132,6 @@ def parse_response(response):
             else:
                 print("Error?")
 
-            # Increment offset by RDLENGTH
             offset += RDLENGTH
 
 def main():
