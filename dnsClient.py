@@ -85,7 +85,44 @@ def parse_response(response):
                 print(f"IP\t{RDATA}\t{TTL}\t{AUTH}")
 
             elif TYPE == 0x0002:
-                print("NS")
+                RDATA = response[offset:offset + RDLENGTH]
+                labels = []
+                ix = 0
+
+                while ix < RDLENGTH:
+                    length = RDATA[ix]
+
+                    # Pointer if first 2 bits are '11'
+                    if length & 0xC0 == 0xC0:
+                        # Get pointer offset by masking first 2 bits
+                        pointer = struct.unpack_from(">H", RDATA, ix)[0] & 0x3FFF 
+                        ix += 2
+
+                        while response[pointer] != 0:
+                            label_len = response[pointer]
+                            pointer += 1
+                            label = ""
+
+                            for i in range(pointer, pointer + label_len):
+                                label += chr(response[i])
+                            
+                            labels.append(label)
+                            pointer += label_len
+                    # Otherwise, parse alias label
+                    else:
+                        # Skip byte indicating label length as we have already stored value in length var
+                        ix += 1
+                        label = ""
+
+                        for i in range(ix, ix + length):
+                            label += chr(RDATA[i])
+
+                        labels.append(label)
+                        ix += length
+
+                ALIAS = ".".join(labels)
+                print(f"NS\t{ALIAS}\t{TTL}\t{AUTH}")
+
             elif TYPE == 0x005:
                 RDATA = response[offset:offset + RDLENGTH]
                 labels = []
@@ -174,4 +211,5 @@ def main():
 if __name__ == "__main__":
     # Type A Query: python3 dnsClient.py -t 10 -r 3 @8.8.8.8 www.mcgill.ca
     # Type MX Query: python3 dnsClient.py -t 10 -r 2 -mx @8.8.8.8 mcgill.ca
+    # Type NS Query: python3 dnsClient.py -ns @8.8.8.8 mcgill.ca
     main()
