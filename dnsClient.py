@@ -20,6 +20,7 @@ class dnsClient:
         # Init client object
         return parser.parse_args()
 
+    # Not meant as constructor, meant as init function for sending/receiving a DNS query
     def init(self):
         args = self.parse_input()
         # Default query type is A
