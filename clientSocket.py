@@ -3,7 +3,7 @@ import struct
 import random
 import time
 
-class client_socket:
+class clientSocket:
     query_type_dict = {'A': 0x0001, 'MX': 0x000f, 'NS': 0x0002}
 
     def __init__(self, timeout, max_retries, port_num, query_type, server_ip, domain_name):
@@ -83,12 +83,13 @@ class client_socket:
 
                 # Save end timestamp
                 end = time.time()
-                print(f"Response received after {end - start} seconds ({num_attempts + 1} retries)")
+                print(f"Response received after {end - start} seconds ({num_attempts} retries)")
 
                 return response
             except socket.timeout:
-                print(f"Timeout on attempt {num_attempts + 1}. Retrying...")
+                print(f"Timeout on attempt {num_attempts + 1}.{' Retrying...' if num_attempts < self.max_retries - 1 else ''}")
                 num_attempts += 1
 
         # If still no response after max number of retries
+        print(f"ERROR\tMaximum number of retries {self.max_retries} exceeded.")
         return None
