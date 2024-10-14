@@ -83,7 +83,7 @@ def parse_response(response):
 
                 RDATA = ".".join(labels)
                 print(f"IP\t{RDATA}\t{TTL}\t{AUTH}")
-                
+
             elif TYPE == 0x0002:
                 print("NS")
             elif TYPE == 0x005:
@@ -122,13 +122,31 @@ def parse_response(response):
                         labels.append(label)
                         ix += length
 
+                ALIAS = ".".join(labels)
+                print(f"CNAME\t{ALIAS}\t{TTL}\t{AUTH}")
 
+            elif TYPE == 0x000f:
+                RDATA = response[offset:offset + RDLENGTH]
+                PREFERENCE = int.from_bytes(RDATA[0:2], byteorder='big')
+                EXCHANGE = RDATA[2:]
+
+                labels = []
+                ix = 0
+
+                while EXCHANGE[ix] != 0:
+                    label_len = EXCHANGE[ix]
+                    ix += 1
+                    label = ""
+
+                    for i in range(ix, ix + label_len):
+                        label += chr(EXCHANGE[i])
+
+                    labels.append(label)
+                    ix += label_len
 
                 ALIAS = ".".join(labels)
+                print(f"MX\t{ALIAS}\t{PREFERENCE}\t{TTL}\t{AUTH}")
 
-                print(f"CNAME\t{ALIAS}\t{TTL}\t{AUTH}")
-            elif TYPE == 0x000f:
-                print("MX")
             else:
                 print("Error?")
 
