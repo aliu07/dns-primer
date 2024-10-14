@@ -6,11 +6,7 @@ class dnsClient:
     def parse_input(self):
         parser = argparse.ArgumentParser(description="DNS Client")
         # Parse optional arguments
-        try:
-            parser.add_argument("-t", type=utils.validate_timeout, default=5)
-        except argparse.ArgumentTypeError:
-            print("Hello")
-
+        parser.add_argument("-t", type=utils.validate_timeout, default=5)
         parser.add_argument("-r", type=utils.validate_retries, default=3)
         parser.add_argument("-p", type=utils.validate_port_num, default=53)
         # Add mutually exclusive group for -mx/-ns optional flags

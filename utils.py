@@ -53,6 +53,7 @@ def validate_server_ipv4(value):
     try:
         ipaddress.IPv4Address(ipv4_str)
         return ipv4_str
+        
     except ipaddress.AddressValueError:
         print("ERROR\tInvalid IPv4 server address.")
         sys.exit(1)
