@@ -27,7 +27,6 @@ class clientSocket:
         ANCOUNT = 0
         NSCOUNT = 0
         ARCOUNT = 0
-
         # Construct header in binary format
         # '>' - Specifies bieg-endian byte order
         # 'H' - Specifies unsigned short (16-bit value i.e. 2 bytes). We have 6 entires of 16 bits, so 6 H's.
@@ -37,7 +36,6 @@ class clientSocket:
 
         # Init QNAME to empty byte string
         QNAME = b''
-
         # Build QNAME
         for label in self.domain_name.split("."):
             # 'B' - Specifies a singular byte (8 bits)
@@ -53,7 +51,7 @@ class clientSocket:
         QCLASS = 0x0001
 
         question = QNAME + struct.pack(">HH", QTYPE, QCLASS)
-
+        
         # BUILDING DNS QUERY
         return header + question
 
