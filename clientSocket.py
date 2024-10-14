@@ -1,15 +1,16 @@
 import socket
 import struct
 import random
+import time
 
 class client_socket:
     query_type_dict = {'A': 0x0001, 'MX': 0x000f, 'NS': 0x0002}
 
-    def __init__(self, timeout, max_retries, port_num, query_flag, server_ip, domain_name):
+    def __init__(self, timeout, max_retries, port_num, query_type, server_ip, domain_name):
         self.timeout = timeout
         self.max_retries = max_retries
         self.port_num = port_num
-        self.query_flag = query_flag
+        self.query_type = query_type
         self.server_ip = server_ip
         self.domain_name = domain_name
 
@@ -47,7 +48,7 @@ class client_socket:
         # Append 0-length label to mark end of QNAME field
         QNAME += b'\x00'
         # Fetch corresponding query type
-        QTYPE = self.query_type_dict[self.query_flag]
+        QTYPE = self.query_type_dict[self.query_type]
         # Class of query always 0x0001 for Internet address
         QCLASS = 0x0001
 
@@ -58,6 +59,9 @@ class client_socket:
 
 
     def query(self):
+        # Save start timestamp
+        start = time.time()
+
         # Init DNS query packet
         packet = self.build_dns_query()
 
@@ -68,7 +72,7 @@ class client_socket:
         # Print to stdout
         print(f"DnsClient sending request for {self.domain_name}")
         print(f"Server: {self.server_ip}")
-        print(f"Request type: {self.query_flag}")
+        print(f"Request type: {self.query_type}")
 
         num_attempts = 0
 
@@ -76,6 +80,11 @@ class client_socket:
             try:
                 client_socket.sendto(packet, (self.server_ip, self.port_num))
                 response, _ = client_socket.recvfrom(512)
+
+                # Save end timestamp
+                end = time.time()
+                print(f"Response received after {end - start} seconds ({num_attempts + 1} retries)")
+
                 return response
             except socket.timeout:
                 print(f"Timeout on attempt {num_attempts + 1}. Retrying...")
@@ -83,5 +92,3 @@ class client_socket:
 
         # If still no response after max number of retries
         return None
-
-        # python3 dnsClient.py @8.8.8.8 www.mcgill.ca
