@@ -49,7 +49,7 @@ class dnsClient:
         NSCOUNT = int.from_bytes(response[8:10], byteorder='big')
         ARCOUNT = int.from_bytes(response[10:12], byteorder='big')
         # Mask every bit except AA in FLAGS for [auth | nonauth]
-        AUTH = "auth" if FLAGS & 0x0400 == 1 else "nonauth"
+        AUTH = "auth" if FLAGS & 0x0400 == 0x0400 else "nonauth"
 
         if ANCOUNT == 0:
             print("NOTFOUND")
