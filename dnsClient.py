@@ -75,7 +75,7 @@ def parse_response(response):
                 
                 # If we do not have 4 octets, we do not have a valid IP address
                 if len(RDATA) != 4:
-                    print("ERROR\tInvalid IP address field in answer record")
+                    print("ERROR\tInvalid IP address field in answer record.")
                     continue
 
                 for i in range(4):
@@ -185,7 +185,7 @@ def parse_response(response):
                 print(f"MX\t{ALIAS}\t{PREFERENCE}\t{TTL}\t{AUTH}")
 
             else:
-                print("Error?")
+                print("ERROR\tUnrecognized record type in DNS answer section.")
 
             offset += RDLENGTH
 
