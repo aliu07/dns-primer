@@ -53,7 +53,7 @@ class clientSocket:
         question = QNAME + struct.pack(">HH", QTYPE, QCLASS)
         
         # BUILDING DNS QUERY
-        return header + question
+        return ID, header + question
 
 
     def query(self):
@@ -61,7 +61,7 @@ class clientSocket:
         start = time.time()
 
         # Init DNS query packet
-        packet = self.build_dns_query()
+        packet_id, packet = self.build_dns_query()
 
         # Init UDP socket
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -82,8 +82,7 @@ class clientSocket:
                 # Save end timestamp
                 end = time.time()
                 print(f"Response received after {end - start} seconds ({num_attempts} retries)")
-
-                return response
+                return packet_id, response
             except socket.timeout:
                 print(f"Timeout on attempt {num_attempts + 1}.{' Retrying...' if num_attempts < self.max_retries - 1 else ''}")
                 num_attempts += 1

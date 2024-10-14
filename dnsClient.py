@@ -19,8 +19,7 @@ class dnsClient:
         # Init client object
         return parser.parse_args()
 
-    # Not meant as constructor, meant as init function for sending/receiving a DNS query
-    def init(self):
+    def main(self):
         args = self.parse_input()
         # Default query type is A
         query_type = "A"
@@ -33,23 +32,60 @@ class dnsClient:
         # Init DNS client socket
         socket = clientSocket(args.t, args.r, args.p, query_type, args.server, args.domain)
         # Send DNS query
-        response = socket.query()
+        packet_id, response = socket.query()
         # Parse DNS response
-        self.parse_response(response)
+        self.parse_response(response, packet_id)
     
-    def parse_response(self, response):
+    def parse_response(self, response, packet_id):
         if response == None:
             return
 
         # RESPONSE HEADER
         ID = int.from_bytes(response[:2], byteorder='big')
+        
         FLAGS = int.from_bytes(response[2:4], byteorder='big')
+        QR = (FLAGS >> 15) & 0x1
+        OPCODE = (FLAGS >> 11) & 0xF
+        AA = (FLAGS >> 10) & 0x1
+        # Mask every bit except AA in FLAGS for [auth | nonauth]
+        AUTH = "auth" if AA == 1 else "nonauth"
+        TC = (FLAGS >> 9) & 0x1
+        RD = (FLAGS >> 8) & 0x1
+        RA = (FLAGS >> 7) & 0x1
+        Z = (FLAGS >> 4) & 0x7
+        RCODE = FLAGS & 0xF
+
         QDCOUNT = int.from_bytes(response[4:6], byteorder='big')
         ANCOUNT = int.from_bytes(response[6:8], byteorder='big')
         NSCOUNT = int.from_bytes(response[8:10], byteorder='big')
         ARCOUNT = int.from_bytes(response[10:12], byteorder='big')
-        # Mask every bit except AA in FLAGS for [auth | nonauth]
-        AUTH = "auth" if FLAGS & 0x0400 == 0x0400 else "nonauth"
+        
+        # VALIDATION
+        if ID != packet_id:
+            print("ERROR\tUnexpected response: query and response packets have different IDs.")
+            return
+
+        if QR != 1:
+            print(f"ERROR\tUnexpected response: packet QR value is invalid (should be 1, but it is {QR}).")
+            return
+        
+        if RA != 1:
+            print("WARNING\tServer does not support recursive queries.")
+
+        if RCODE == 1:
+            print("ERROR\tFormat error: the name server was unable to interpret the query")
+            return
+        elif RCODE == 2:
+            print("ERROR\tServer failure: the name server was unable to process this query due to a problem with the name server.")
+            return
+        elif RCODE == 3:
+            print("NOTFOUND")
+            return
+        elif RCODE == 4:
+            print("ERROR\tNot implemented: the name server does not support the requested kind of query.")
+            return
+        elif RCODE == 5:
+            print("ERROR\tRefused: the name server refuses to perform the requested operation for policy reasons.")
 
         if ANCOUNT == 0:
             print("NOTFOUND")
@@ -82,11 +118,17 @@ class dnsClient:
                 TYPE = int.from_bytes(response[offset:offset + 2], byteorder='big')
                 offset += 2
                 CLASS = int.from_bytes(response[offset:offset + 2], byteorder='big')
+                CLASS = 5
                 offset += 2
                 TTL = int.from_bytes(response[offset: offset + 4], byteorder='big')
                 offset += 4
                 RDLENGTH = int.from_bytes(response[offset: offset + 2], byteorder='big')
                 offset += 2
+
+                # VALIDATION
+                if CLASS != 1:
+                    print(f"ERROR\tUnexpected response: CLASS value should be 1, but is {CLASS}.")
+                    continue
 
                 if TYPE == 0x0001:
                     # If we do not have 4 octets, we do not have a valid IP address
@@ -154,4 +196,4 @@ if __name__ == "__main__":
     # Type NS Query: python3 dnsClient.py -ns @8.8.8.8 mcgill.ca
     # python3 dnsClient.py -mx @8.8.8.8 gmail.com
     dnsClient = dnsClient()
-    dnsClient.init()
+    dnsClient.main()
