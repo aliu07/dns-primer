@@ -89,4 +89,4 @@ class clientSocket:
 
         # If still no response after max number of retries
         print(f"ERROR\tMaximum number of retries {self.max_retries} exceeded.")
-        return None
+        return None, None
