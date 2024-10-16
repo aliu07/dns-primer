@@ -101,6 +101,7 @@ class dnsClient:
             print("NOTFOUND")
         elif ANCOUNT < 0:
             print("ERROR\tUnexpected response: record count is negative.")
+            return
         else:
             print(f"*** Answer Section ({ANCOUNT} records) ***")
             # Extracting all answer section records    
@@ -168,13 +169,16 @@ class dnsClient:
             # VALIDATION
             if CLASS != 1:
                 print(f"ERROR\tUnexpected response: CLASS value should be 1, but is {CLASS}.")
+                offset += RDLENGTH
                 continue
 
             if TYPE == 0x0001:
                 # If we do not have 4 octets, we do not have a valid IP address
                 if RDLENGTH != 4:
                     print("ERROR\tInvalid IP address field in answer record.")
+                    offset += RDLENGTH
                     continue
+
                 # Build IP address
                 IP_ADDRESS = ".".join(str(label) for label in response[offset:offset + 4])
                 print(f"IP\t{IP_ADDRESS}\t{TTL}\t{AUTH}")
