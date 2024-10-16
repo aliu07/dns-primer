@@ -1,8 +1,8 @@
 import argparse
 import utils
-from clientSocket import clientSocket
+from clientSocket import ClientSocket
 
-class dnsClient:
+class DnsClient:
     def parse_input(self):
         parser = argparse.ArgumentParser(description="DNS Client")
         # Parse optional arguments
@@ -30,9 +30,9 @@ class dnsClient:
             query_type = "NS"
 
         # Init DNS client socket
-        socket = clientSocket(args.t, args.r, args.p, query_type, args.server, args.domain)
+        udp_socket = ClientSocket(args.t, args.r, args.p, query_type, args.server, args.domain)
         # Send DNS query
-        packet_id, response = socket.query()
+        packet_id, response = udp_socket.query()
         # Parse DNS response
         self.parse_response(response, packet_id)
     
@@ -236,5 +236,5 @@ if __name__ == "__main__":
     # Type MX Query: python3 dnsClient.py -t 10 -r 2 -mx @8.8.8.8 mcgill.ca
     # Type NS Query: python3 dnsClient.py -ns @8.8.8.8 mcgill.ca
     # Type MX Query: python3 dnsClient.py -mx @8.8.8.8 gmail.com
-    dnsClient = dnsClient()
+    dnsClient = DnsClient()
     dnsClient.main()

@@ -3,7 +3,7 @@ import struct
 import random
 import time
 
-class clientSocket:
+class ClientSocket:
     query_type_dict = {'A': 0x0001, 'MX': 0x000f, 'NS': 0x0002}
 
     def __init__(self, timeout, max_retries, port_num, query_type, server_ip, domain_name):
