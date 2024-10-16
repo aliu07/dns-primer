@@ -200,10 +200,11 @@ class dnsClient:
         return offset
 
     def skip_authority_section(self, response, num_records, offset):
+
         for i in range(num_records):
             # Skip the name field
             while True:
-                length = packet[offset]
+                length = response[offset]
                 if length == 0:
                     offset += 1
                     break
@@ -213,17 +214,16 @@ class dnsClient:
                 else:
                     offset += length + 1
 
-            # Skip Type (2 bytes), Class (2 bytes), TTL (4 bytes), and RDLength (2 bytes)
+            # Skip TYPE (2 bytes), CLASS (2 bytes), TTL (4 bytes), and RDLENGTH (2 bytes)
             offset += 10
 
-            # Read RDLength
-            rdlength = struct.unpack('>H', packet[offset-2:offset])[0]
+            # Read RDLENGTH
+            RDLENGTH = int.from_bytes(response[offset:offset + 2], byteorder='big')
 
             # Skip the RDATA field
-            offset += rdlength
+            offset += RDLENGTH
 
         return offset  # This is now the start of the additional section
-
 
 
 
