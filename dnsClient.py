@@ -62,11 +62,12 @@ class DnsClient:
         
         # VALIDATION
         if ID != packet_id:
-            print("ERROR\tUnexpected response: query and response packets have different IDs.")
+            print("ERROR\tUnexpected response: query and response packets have different IDs")
             return
 
         if QR != 1:
-            print(f"ERROR\tUnexpected response: packet QR value is invalid (should be 1, but it is {QR}).")
+            # If QR not 1, then it must be 0... since QR is only 1 bit long
+            print("ERROR\tUnexpected response: packet QR value is invalid (should be 1 but is 0)")
             return
         
         if RA != 1:
@@ -76,16 +77,16 @@ class DnsClient:
             print("ERROR\tFormat error: the name server was unable to interpret the query")
             return
         elif RCODE == 2:
-            print("ERROR\tServer failure: the name server was unable to process this query due to a problem with the name server.")
+            print("ERROR\tServer failure: the name server was unable to process this query due to a problem with the name server")
             return
         elif RCODE == 3:
             print("NOTFOUND")
             return
         elif RCODE == 4:
-            print("ERROR\tNot implemented: the name server does not support the requested kind of query.")
+            print("ERROR\tNot implemented: the name server does not support the requested kind of query")
             return
         elif RCODE == 5:
-            print("ERROR\tRefused: the name server refuses to perform the requested operation for policy reasons.")
+            print("ERROR\tRefused: the name server refuses to perform the requested operation for policy reasons")
             return
 
         # Init offset to 12 to skip header
@@ -100,7 +101,7 @@ class DnsClient:
         if ANCOUNT == 0:
             print("NOTFOUND")
         elif ANCOUNT < 0:
-            print("ERROR\tUnexpected response: record count is negative.")
+            print("ERROR\tUnexpected response: record count is negative")
             return
         else:
             print(f"*** Answer Section ({ANCOUNT} records) ***")
@@ -168,14 +169,14 @@ class DnsClient:
 
             # VALIDATION
             if CLASS != 1:
-                print(f"ERROR\tUnexpected response: CLASS value should be 1, but is {CLASS}.")
+                print(f"ERROR\tUnexpected response: CLASS value should be 1, but is {CLASS}")
                 offset += RDLENGTH
                 continue
 
             if TYPE == 0x0001:
                 # If we do not have 4 octets, we do not have a valid IP address
                 if RDLENGTH != 4:
-                    print("ERROR\tInvalid IP address field in answer record.")
+                    print("ERROR\tInvalid IP address field in record")
                     offset += RDLENGTH
                     continue
 
@@ -197,7 +198,7 @@ class DnsClient:
                 print(f"MX\t{ALIAS}\t{PREFERENCE}\t{TTL}\t{AUTH}")
 
             else:
-                print(f"ERROR\tUnsupported record type found in answer section: {TYPE}.")
+                print(f"ERROR\tUnsupported record type found in section: {TYPE}")
 
             offset += RDLENGTH
 
